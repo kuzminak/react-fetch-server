@@ -10,7 +10,8 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "http2-express-bridge": "^1.0.7"
   },
   "engines": {
     "node": "12.x"
