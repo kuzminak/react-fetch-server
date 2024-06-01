@@ -2,6 +2,7 @@ const express = require('express');
 const http2Express = require('http2-express-bridge')
 const http2 = require('http2');
 const { readFileSync } = require('fs')
+const fs = require('fs');
 
 const txtMap = new Map();
 
@@ -74,6 +75,38 @@ app.get('/receive', async (req, res) => {
   res.end();
 });
 
+
+app.get('/infscrolldata', async (req, res) => {
+  res.set('Content-Type', 'application/json');
+  res.set('Access-Control-Allow-Origin', '*');
+  // read json file
+  // var obj;
+  // fs.readFile('inf-scroll-data.json', 'utf8', function (err, data) {
+  //   if (err) throw err;
+  //   obj = JSON.parse(data);
+  //
+  //   jsonAsStr = JSON.stringify(obj) + "\n";
+  //   res.write(jsonAsStr);
+  //   console.log(`Sent: ${jsonAsStr}`);
+  // });
+
+  const cursor = req.query.cursor ? parseInt(req.query.cursor) : 0;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
+  console.log(`cursor: ${cursor}, limit: ${limit}`);
+
+  res.write('[');
+  let cnt = 0;
+  for await (let chunk of generateIfnScrollData(cursor, limit)) {
+    chunk = (cnt > 0) ? ',' + chunk : chunk;
+    cnt++;
+    res.write(chunk);
+    console.log(`Sent: ${chunk}`);
+  }
+  res.write(']');
+  res.end();
+});
+
 app.use(express.static('public'));
 
 //C:\Users\AlexeyKuzmin\react\sample-streaming-requests-with-fetch-api
@@ -85,7 +118,7 @@ const options = {
 }
 const server = http2.createSecureServer(options, app)
 
-const listener = server.listen(process.env.PORT || 3000, function() {
+const listener = server.listen(process.env.PORT || 3001, function() {
   console.log('Your app is listening on port ' + listener.address().port);
 });
 
@@ -94,6 +127,25 @@ async function* generateData() {
     // Simulate delay
     await new Promise(resolve => setTimeout(resolve, 500));
     // Yield data chunk
+
     yield `data chunk ${i}\n`;
   }
 }
+
+async function* generateIfnScrollData(cursor, limit) {
+  for (let i = cursor; i < limit; i++) {
+    // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // Yield data chunk
+    obj = {
+      imageSrc: 'https://s3.amazonaws.com/codecademy-content/programs/react/ravenous/pizza.jpg',
+      title: `${i}: FETCH This is test title!`,
+      text: 'FETCH This is test text!'
+    }
+
+    obj['id'] = i;
+
+    yield JSON.stringify(obj) + "\n";
+  }
+}
+

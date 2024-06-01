@@ -23,15 +23,14 @@ fetch(`/send?key=${key}`, {
     headers: {'Content-Type': 'text/plain'},
     body: stream,
     allowHTTP1ForStreamingUpload: false,
-    duplex: 'half',
-    signal: new AbortSignal()
+    duplex: 'half'
 })
     .then(r => console.log(r))
     .catch(e => console.error(e));
 
 
 
-fetch(`/receive?key=${key}`).then(async res => {
+fetch(`/infscrolldata?key=${key}`).then(async res => {
     const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
     while (true) {
         const {done, value} = await reader.read();
